@@ -210,6 +210,73 @@
       ],
       "id": "315ef135-f32c-4ae1-89ed-f88c8eb61ba3",
       "name": "Code"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.urgency }}",
+                    "rightValue": "high",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c58d5b1a-c44d-45a5-b43d-994fde0279af"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        16
+      ],
+      "id": "83654cc7-ba6a-409d-acb6-fea09d94ebf4",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C099C27RLUU",
+          "mode": "list",
+          "cachedResultName": "all-personal-work"
+        },
+        "text": "=*🚨 [{{ $json.urgency | upper }} URGENCY]*  \n*Subject:* {{ $json.subject }}  \n*Category:* {{ $json.category }}  \n*Confidence:* {{ $json.confidence }}  \n*Sentiment:* {{ $json.sentiment }}  \n*Key Point:* {{ $json.key_points }}  \n*Suggested Action:* {{ $json.suggested_action }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        16
+      ],
+      "id": "7f79fe51-0860-47ff-a808-3afdbb742072",
+      "name": "Send a message",
+      "webhookId": "dc909240-d815-4c83-8148-eabbaf9511b2",
+      "credentials": {
+        "slackApi": {
+          "id": "bWZbOjZQiiGIJFFD",
+          "name": "Slack account 3"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -265,13 +332,35 @@
           }
         ]
       ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "331e4824-7897-4874-aeee-200c3d313fca",
+  "versionId": "c57b5bfe-12a0-47e8-8711-08f1941f1a14",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c6a210582ff76165b28cc688926d6d8a2d2041a03688cfee70efd36af86d88e6"
