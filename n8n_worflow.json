@@ -1,0 +1,281 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "1db5d0eb-92e0-4f95-b23d-b32a2180e9ca",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rjohdYmbSCkaS7RQ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5001/analyze_email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subject\": \"{{ $json.Subject }}\",\n  \"sender\": \"{{ $json.From }}\",\n  \"body\": \"{{ $json.snippet }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b029eee7-f456-46a9-9234-afd0515bc849",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.analysis.urgency }}",
+                    "rightValue": "high",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1247e4cc-9610-4111-8da0-7a874ffd66d3"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0a416678-284c-43b4-995e-75967e714265",
+                    "leftValue": "={{ $json.analysis.category }}",
+                    "rightValue": "support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fbc6b8cf-23d7-4488-8109-57f9b8484112",
+                    "leftValue": "={{ $json.analysis.category }}",
+                    "rightValue": "spam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "188bd843-3969-4f31-bddb-de67b421a88f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "34e5d4d9-cb16-4ea1-9670-15c6d711195e",
+              "name": "urgency",
+              "value": "={{ $json.analysis.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "65626e0c-b825-4405-acd5-f3649342a092",
+              "name": "category",
+              "value": "={{ $json.analysis.category }}",
+              "type": "string"
+            },
+            {
+              "id": "1e8fce7c-1f33-41f5-95da-cefc4f1e2686",
+              "name": "confidence",
+              "value": "={{ $json.analysis.confidence}}  ",
+              "type": "string"
+            },
+            {
+              "id": "c2feef86-31f7-4680-b96d-c2f8812c6792",
+              "name": "suggested_action",
+              "value": "={{ $json.analysis.suggested_action }}  ",
+              "type": "string"
+            },
+            {
+              "id": "98fbcd8d-702c-4749-b20f-dd16fb7ba9b5",
+              "name": "key_points",
+              "value": "={{ $json.analysis.key_points }}  ",
+              "type": "string"
+            },
+            {
+              "id": "99ded463-107d-488c-a303-26d823b2d843",
+              "name": "subject",
+              "value": "={{ $json.original_email.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "b2ad5111-2b32-4e72-a25a-2d2a42a16108",
+              "name": "sentiment",
+              "value": "={{ $json.analysis.sentiment }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        16
+      ],
+      "id": "6973e7a4-554f-4762-926e-1d4579cafacb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Debug the exact data structure\nconsole.log('Full data structure:', JSON.stringify($input.all()[0], null, 2));\n\n// Return the data unchanged  \nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        192
+      ],
+      "id": "315ef135-f32c-4ae1-89ed-f88c8eb61ba3",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "331e4824-7897-4874-aeee-200c3d313fca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6a210582ff76165b28cc688926d6d8a2d2041a03688cfee70efd36af86d88e6"
+  },
+  "id": "tp6I9CcWi36UN5lN",
+  "tags": []
+}
