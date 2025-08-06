@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  email-analyzer:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: email-analysis-service
+    ports:
+      - "${PORT:-5001}:5001"
+    volumes:
+      # Persist model cache to avoid re-downloading
+      - models_cache:/app/models_cache
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TRANSFORMERS_CACHE=/app/models_cache
+      - HF_HOME=/app/models_cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - email-analysis-network
+
+  # Optional: Add n8n service
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-service
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_AUTH:-true}
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-changeme123}
+      - N8N_SECURE_COOKIE=false
+      - N8N_HOST=localhost
+      - WEBHOOK_URL=http://localhost:5678/
+    restart: unless-stopped
+    depends_on:
+      - email-analyzer
+    networks:
+      - email-analysis-network
+
+volumes:
+  models_cache:
+    driver: local
+  n8n_data:
+    driver: local
+
+networks:
+  email-analysis-network:
+    driver: bridge
