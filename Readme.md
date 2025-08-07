@@ -8,8 +8,8 @@ Automatically analyze Gmail emails using **free AI models** and trigger smart wo
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/ai-email-analysis.git
-cd ai-email-analysis
+git clone https://github.com/Abhash297/n8n---simple-project.git
+cd YOUR_PROJECT_DIRECTORY
 
 # 2. Start services (requires Docker)
 docker-compose up --build
